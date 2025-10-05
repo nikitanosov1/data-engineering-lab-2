@@ -1,0 +1,804 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.telegram.org/bot7505605815:AAFZqhS-VxkGtkCNHGfnbtVKHJ1SI_C1ZWc/getUpdates",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "timeout",
+              "value": "20"
+            },
+            {
+              "name": "allowed_updates",
+              "value": "'[\"message\"]'"
+            },
+            {
+              "name": "offset",
+              "value": "={{ $json.data[0].offset + 1 }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [144, 288],
+      "id": "be097fed-8b27-4f99-90df-67ff80a34ba5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [-592, 288],
+      "id": "9e4785bc-cf6e-408a-b81b-3c11a86abf64",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [672, 336],
+      "id": "dad3322e-12ca-47b7-958e-cdcef748a3fe",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "result",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [432, 288],
+      "id": "bfe23da1-8427-4532-a60d-b30041ca14ff",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "const updates = $input.first().json.result || [];\nif (updates.length === 0) {\n  return [{ json: { offset: $input.first().json.offset || 0 } }];\n}\n\nconst maxId = Math.max(...updates.map(u => u.update_id));\nreturn [{ json: { offset: maxId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [304, 112],
+      "id": "95b22b5f-c7d2-4bf6-b6d9-806a6dfcaf83",
+      "name": "calc max offset"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/previousMaxOffset.json",
+        "dataPropertyName": "=data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [624, 112],
+      "id": "8cb99520-f25f-41cb-8fd8-001216c26ff7",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [464, 112],
+      "id": "bd139f61-3eb0-468b-baa0-1203980649b6",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/previousMaxOffset.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [-304, 288],
+      "id": "a7f4afa9-384d-4fa1-9cfa-74d2aee62ad2",
+      "name": "Read/Write Files from Disk1"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [0, 288],
+      "id": "6bdc6f68-6e84-4d73-9093-94580c216edf",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "content": "## Сохранение максимального update_id в файл previousMaxOffset.json",
+        "height": 272,
+        "width": 528
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [288, 0],
+      "typeVersion": 1,
+      "id": "e92d34db-3241-4e5d-959c-83f92195797d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Чтение максимального update_id из файла previousMaxOffset.json",
+        "height": 320,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-416, 160],
+      "typeVersion": 1,
+      "id": "9544b1df-65e6-457d-9fde-d0d3ede22726",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## LongPooling Telegram API\nhttps://core.telegram.org/bots/api#getupdates",
+        "height": 752,
+        "width": 1504,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [-640, -64],
+      "typeVersion": 1,
+      "id": "af5e7851-1d1c-4c30-b42b-870ff210cb61",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message?.video !== undefined }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "6b951706-0dd8-495b-a8eb-9aed385b5e66"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "видео"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b6fd54fe-965d-4678-8b20-e8f888342569",
+                    "leftValue": "={{ $json.message?.text?.trim().match(/^https:\\/\\/.*\\.mp4$/i) !== null }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "mp4 ссылка"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [880, 432],
+      "id": "3043c259-0d54-4dd1-9175-9e2cfefcaedd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "710111913",
+        "text": "=Пожалуйста, пришлите видео или ссылку на видео",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1120, 624],
+      "id": "1aaba7a0-bae5-44c5-84d3-5a79095249b0",
+      "name": "Send a text message1",
+      "webhookId": "f868d2f3-ed47-4e0f-82b1-44bf564b89fc",
+      "credentials": {
+        "telegramApi": {
+          "id": "o1q57xqGfG5LWFMd",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.video.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [1120, 272],
+      "id": "82e57720-29e7-4e30-8032-fbea6090204e",
+      "name": "Get a file",
+      "webhookId": "e0769871-efe3-49da-81a5-2f88a6fdd33f",
+      "credentials": {
+        "telegramApi": {
+          "id": "o1q57xqGfG5LWFMd",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/input-video.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1360, 352],
+      "id": "c7c009ae-d91e-4332-8f90-0c1b6c28e1b5",
+      "name": "Read/Write Files from Disk2"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.message.text }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 448],
+      "id": "b1dc3512-ba2d-4faa-bf73-db7d88781dc2",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -y -i \"/files/input-video.mp4\" -vn -acodec pcm_s16le -ar 44100 -ac 2 /files/audio.wav"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [1568, 352],
+      "id": "fc0ebdea-7264-4f27-ac8b-e637ae95dc0e",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5000/transcribe",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1968, 352],
+      "id": "67efa182-72c2-4d96-940e-e5f4d749cb03",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/audio.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [1760, 352],
+      "id": "7c375113-0444-4321-9c0f-b70d51fcc124",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Ты — профессиональный переводчик субтитров. Твоя задача — перевести предоставленные субтитры с любого языка на русский язык, строго сохранив формат SRT.\n\nПравила:\n\nНе изменяй номера строк и временные метки (формат: ЧЧ:ММ:СС,мс --> ЧЧ:ММ:СС,мс).\nПереводи только текст каждой реплики.\nСохраняй оригинальную структуру: пустые строки между блоками, порядок следования.\nПеревод должен быть естественным, разговорным, но точным по смыслу.\nЕсли в оригинале несколько строк в одном блоке — сохрани их как есть (переведи каждую строку, разделив переносом).\nНе добавляй пояснений, комментариев, заголовков или лишнего текста вне SRT-формата.\nНа выходе должен быть только чистый SRT-контент, готовый к сохранению в файл с расширением .srt.\nВот входные субтитры:\n\n{{ $json.data }}\n\nТеперь выведи переведённые субтитры на русском языке в точном соответствии с форматом SRT.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [2192, 352],
+      "id": "56dc912f-f976-4e15-b440-af15785329fc",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-30b-a3b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [2192, 512],
+      "id": "0160bc49-bbbb-4709-8dfc-46ec18d57a1a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "H6zee2L5cpSHH3SC",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/out_ru.srt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [2704, 352],
+      "id": "872e4094-768b-432c-98d4-2687b3a776ea",
+      "name": "Read/Write Files from Disk4"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "options": {
+          "fileName": "out_ru.srt"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [2528, 352],
+      "id": "c51ebdd9-6a1b-4806-94fa-c827fe4d0d84",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -y \\\n  -i \"/files/input-video.mp4\" \\\n  -vf \"subtitles=/files/out_ru.srt:force_style='Fontsize=22,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&,BackColour=&H80000000&,Bold=1'\" \\\n  -c:a copy \\\n  \"/files/output_ru.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [2976, 352],
+      "id": "e5bdc16f-81df-4e72-abb7-4d5b7c9429a1",
+      "name": "Execute Command1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/output_ru.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [3248, 352],
+      "id": "a496c8e4-f43d-435e-b4e6-772b865845d2",
+      "name": "Read/Write Files from Disk5"
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "710111913",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "Готово! Вот ваше итоговое видео"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [3424, 608],
+      "id": "a0230808-78b0-4300-a5f5-31fdabe6f838",
+      "name": "Send a video",
+      "webhookId": "f868d2f3-ed47-4e0f-82b1-44bf564b89fc",
+      "credentials": {
+        "telegramApi": {
+          "id": "o1q57xqGfG5LWFMd",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Загрузка и сохранение исходного видео на диск input-video.mp4",
+        "height": 592,
+        "width": 640
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [864, 176],
+      "typeVersion": 1,
+      "id": "42602227-1e5e-4e2b-ae81-ab710d1c1e4f",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## input-video.mp4 -> audio.wav через ffmpeg",
+        "height": 592,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1520, 176],
+      "typeVersion": 1,
+      "id": "790a9ee6-d61b-4102-a668-0959b36e25b1",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## SST через утилиту auto_subtitle",
+        "height": 592,
+        "width": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [1920, 176],
+      "typeVersion": 1,
+      "id": "d816054f-cfd8-47c4-8679-d6a0e11284f6",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## EN -> RU через Qwen",
+        "height": 592,
+        "width": 336
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [2128, 176],
+      "typeVersion": 1,
+      "id": "1d5f660b-be87-4561-8f62-541bc5c92bf6",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Сохранение out_ru.srt",
+        "height": 592,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [2480, 176],
+      "typeVersion": 1,
+      "id": "672201e2-9185-473c-9aad-358bb981e9e9",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## out_ru.srt + input-video.mp4 -> output_ru.mp4 через fmmpeg",
+        "height": 592,
+        "width": 320
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [2864, 176],
+      "typeVersion": 1,
+      "id": "9cceb38b-3eee-44a4-9217-3a12246651fa",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## Отправка output_ru.mp4 в тг бота",
+        "height": 592,
+        "width": 384
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [3200, 176],
+      "typeVersion": 1,
+      "id": "956a5d3c-5151-4c1f-9832-a9e77b3a1c9c",
+      "name": "Sticky Note9"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "calc max offset",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "calc max offset": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [[]]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk2": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk4": {
+      "main": [
+        [
+          {
+            "node": "Execute Command1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk5": {
+      "main": [
+        [
+          {
+            "node": "Send a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a video": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3f8a93d1-e4a6-4878-a4d6-b00c149a12fb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d4c2094c891a2bccc98fc620a27275eb8a51234912f55ceac7f78b9100c5af00"
+  },
+  "id": "uCi28gRQSJJzm7jz",
+  "tags": []
+}
