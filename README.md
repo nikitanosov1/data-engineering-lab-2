@@ -1,5 +1,10 @@
 # Заметки по ЛР2
 
+## Пример работы TG бота
+
+<img width="800" height="898" alt="image" src="https://github.com/user-attachments/assets/829abbd3-2a4c-4dae-9bf4-b85061a339e9" />
+
+
 ## Как запустить проект?
 
 ```
